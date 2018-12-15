@@ -1,0 +1,10 @@
+/app/bundle/*
+/app/assets/*
+/node_modules
+/vendor
+*.lock
+.DS_Store
+.idea
+*.zip
+*.code-workspace
+*-lock.json

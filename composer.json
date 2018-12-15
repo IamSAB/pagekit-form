@@ -1,0 +1,21 @@
+{
+    "name": "sab/form",
+    "type": "pagekit-extension",
+    "version": "0.0.1",
+    "title": "SAB Form",
+    "description": "A form extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Simon Andreas Bösch",
+            "homepage": "http://www.simb.ch"
+        }
+    ],
+    "archive": {
+        "exclude": ["node_modules", "!/app"]
+    },
+    "require": {
+        "sunra/php-simple-html-dom-parser": "1.5.2",
+        "google/recaptcha": "~1.1"
+    }
+}
