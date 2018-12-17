@@ -5,6 +5,7 @@ namespace SAB\Form\Controller;
 
 use Pagekit\Application as App;
 use Pagekit\Util\Arr;
+use ReCaptcha\ReCaptcha;
 
 /**
  * @Route("/form")
@@ -13,11 +14,21 @@ class FormApiController
 {
     /**
      * @Route(methods="POST")
-     * @Request({"data"}, csrf=true)
+     * @Request({"data", "recaptcha"}, csrf=true)
      */
-    public function indexAction(string $data)
+    public function indexAction(string $data, string $reCaptchaToken = '')
     {
-        // try {
+        try {
+
+            // verify reCaptcha
+            if ($reCaptchaToken) {
+                $recaptcha = new ReCaptcha(App::config('form')->get('recaptcha.secret'));
+                $response = $recaptcha->verify($reCaptchaToken, App::request()->server->get('REMOTE_ADDR'));
+                if (!$response->isSuccess()) {
+                    $errors = $response->getErrorCodes();
+                    App::abort(403, (isset($errors[0]) ? $errors[0] : 'Error in reCaptcha'));
+                }
+            }
 
             list($mail, $adresses, $values) = array_values(json_decode($data, true));
 
@@ -31,8 +42,6 @@ class FormApiController
                     $adresses[$key] = Arr::merge($adresses[$key], (array) $part);
                 }
             }
-
-            var_dump($adresses);
 
             foreach ($adresses as $type => $arr) {
                 foreach ($arr as $i => $email) {
@@ -68,8 +77,8 @@ class FormApiController
 
             return compact('values', 'mail', 'adresses');
 
-        // } catch (\Exception $e) {
-        //     throw new \Exception(__('Unable to send mail.'));
-        // }
+        } catch (\Exception $e) {
+            throw new \Exception(__('Unable to send mail.'));
+        }
     }
 }

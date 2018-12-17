@@ -31,7 +31,7 @@ class FormPlugin implements EventSubscriberInterface
             $mail = Arr::extract($attrs, ['title', 'subject', 'desc', 'priority']);
             $values = [];
 
-            foreach($form->find('input, select, textarea') as $index => $input) {
+            foreach($form->find('input[name], select[name], textarea[name]') as $index => $input) {
 
                 if ($input->tag == 'select' && $input->multiple) { // TODO currently setting multiple times default
                     $values[$input->name] = [];
@@ -59,9 +59,20 @@ class FormPlugin implements EventSubscriberInterface
                 $id => compact('mail', 'values', 'adresses')
             ]);
 
-            $form->find('button[type!=button]',0)->setAttribute('v-show','status == 0');
-            $form->find('*[success]',0)->setAttribute('v-show', 'status == 2');
-            $form->find('*[error]',0)->setAttribute('v-show', 'status == 3');
+            // google recaptcha
+            if (App::config('form')->get('recaptcha.sitekey')) {
+                App::view()->script('g-recaptcha');
+            }
+
+            // submission handling
+            $form->find('input[type=submit]',0)->setAttribute('v-show','status == 0');
+
+            if ($success = $form->find('*[success]',0)) {
+                $success->setAttribute('v-show', 'status == 2');
+            }
+            if ($error = $form->find('*[error]',0)) {
+                $error->setAttribute('v-show', 'status == 3');
+            }
 
             $html = HtmlDomParser::file_get_html(App::locator()->get('form:views/form.html'));
             $html->find('div', 0)->setAttribute('id', $id);

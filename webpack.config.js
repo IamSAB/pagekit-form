@@ -3,6 +3,7 @@ module.exports = [
 
     {
         entry: {
+            "site-recaptcha": "./app/components/site-recaptcha.vue",
             "forms": "./app/views/forms.js",
         },
         output: {
@@ -10,7 +11,8 @@ module.exports = [
         },
         module: {
             loaders: [
-                { test: /\.vue$/, loader: "vue" }
+                { test: /\.vue$/, loader: "vue" },
+                { test: /\.js/, loader: "babel", query: {presets: ['es2015',],},},
             ]
         }
     }

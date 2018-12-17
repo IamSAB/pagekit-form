@@ -16,6 +16,6 @@
     },
     "require": {
         "sunra/php-simple-html-dom-parser": "1.5.2",
-        "google/recaptcha": "~1.1"
+        "google/recaptcha": "^1.2"
     }
 }

@@ -1,4 +1,4 @@
-const Form = require('../components/form.js');
+import Form from '../components/form';
 
 Vue.ready(function () {
     _.each(window.$forms, (form, id) => {
