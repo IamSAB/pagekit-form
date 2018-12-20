@@ -1,7 +1,7 @@
 {
     "name": "sab/form",
     "type": "pagekit-extension",
-    "version": "0.0.1",
+    "version": "0.9.0",
     "title": "SAB Form",
     "description": "A form extension",
     "license": "MIT",
@@ -14,8 +14,11 @@
     "archive": {
         "exclude": ["node_modules", "!/app"]
     },
+    "extra": {
+        "icon": "logo.svg"
+    },
     "require": {
-        "sunra/php-simple-html-dom-parser": "1.5.2",
+        "thesoftwarefanatics/php-html-parser": "*",
         "google/recaptcha": "^1.2"
     }
 }
