@@ -1,6 +1,6 @@
 # pagekit-form
 
-Create your custom html forms in the Pagekit Editor. The extension parses the form and makes it interactive with a vue instance.
+Create your custom html forms in the Pagekit Editor. The extension parses the form and makes it interactive with a vue instance. You can use mulitple forms on a single page.
 
 ## Form options
 
@@ -21,8 +21,8 @@ If you want use values from your input simply use the input name prefixed with a
 
 ## Form inputs
 
-Only inputs with a name attributes get registered.
-Every input get is send to the provided adresses as a table of name & value.
+Only inputs with name attributes get registered.
+Every input is send via mail to the provided adresses as a table of name & value.
 File(s) input generate an attachement and a list of files in the table.
 
 ## Form submission
@@ -30,6 +30,10 @@ File(s) input generate an attachement and a list of files in the table.
 The form can be submitted with an `input[type=submit]` or `button[type=submit]`.
 For succes and error messages add the proper attribute to an html element. The visibility manages the extension.
 After submission the hole form stays disabled.
+
+## Google reCAPTCHA
+
+Enter your sitekey and secret under Site > Settings > Recaptcha. The forms now use the invisible recaptcha for validation. Without a sitekey, recaptcha is disabled.
 
 ## Sample form
 
