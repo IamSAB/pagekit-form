@@ -7,12 +7,14 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Simon Andreas Bösch",
-            "homepage": "http://www.simb.ch"
+            "name": "Simon Bösch"
         }
     ],
     "archive": {
         "exclude": ["node_modules", "!/app"]
+    },
+    "extra": {
+        "icon": "icon.svg"
     },
     "require": {
         "sunra/php-simple-html-dom-parser": "1.5.2",
