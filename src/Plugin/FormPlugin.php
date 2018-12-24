@@ -66,7 +66,13 @@ class FormPlugin implements EventSubscriberInterface
             }
 
             // submission handling
-            $form->find('input[type=submit]',0)->setAttribute('v-show','status == 0');
+
+            if ($submit = $form->find('input[type=submit]',0)) {
+                $submit->setAttribute('v-show','status == 0');
+            }
+            else {
+                App::log()->warning(sprintf('No submit button found for %s', $id));
+            }
 
             if ($success = $form->find('*[success]',0)) {
                 $success->setAttribute('v-show', 'status == 2');
@@ -75,11 +81,11 @@ class FormPlugin implements EventSubscriberInterface
                 $error->setAttribute('v-show', 'status == 3');
             }
 
-            $html = HtmlDomParser::file_get_html(App::locator()->get('form:views/form.html'));
-            $html->find('div', 0)->setAttribute('id', $id);
-            $html->find('form',0)->setAttribute('class', $form->getAttribute('class'));
-            $html->find('fieldset',0)->innertext = $form->innertext;
-            $form->outertext = $html;
+            $form->outertext = App::view('sab/form/form.php', [
+                'id' => $id,
+                'class' => $form->getAttribute('class'),
+                'content' => $form->innertext,
+            ]);
         }
 
         $event->setContent($content->save());

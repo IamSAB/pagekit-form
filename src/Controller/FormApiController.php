@@ -73,7 +73,7 @@ class FormApiController
                 }
             }
 
-            $msg->setBody(App::view('form/mail.php', compact('values', 'mail', 'form')), 'text/html');
+            $msg->setBody(App::view('sab/form/mail.php', compact('values', 'mail', 'form')), 'text/html');
 
             $msg->send();
 

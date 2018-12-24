@@ -9,12 +9,11 @@
     export default {
 
         data: () => ({
-            widgetId: null,
-            sitekey: window.$pagekit.recaptcha
+            widgetId: null
         }),
 
         ready () {
-            if (this.sitekey) this.init();
+            if (window.$pagekit.recaptcha) this.init();
         },
 
         methods: {

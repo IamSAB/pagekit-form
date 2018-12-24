@@ -8,7 +8,7 @@ use Pagekit\Event\Event;
 
 return [
 
-    'name' => 'form',
+    'name' => 'sab/form',
 
     'main' => function ($app) {
 
@@ -52,16 +52,16 @@ return [
             $scripts->register('g-recaptcha', 'https://www.google.com/recaptcha/api.js');
             $dps = ['uikit-notify', 'vue'];
             if ($app['config']->get('form')->get('recaptcha.sitekey')) $dps[] = 'g-recaptcha';
-            $scripts->register('forms', 'form:app/bundle/forms.js', $dps);
+            $scripts->register('forms', 'sab/form:app/bundle/forms.js', $dps);
         },
 
         'view.styles' => function (Event $event, AssetManager $styles) {
-            $styles->register('form', 'form:css/form.css');
+            $styles->register('form', 'sab/form:css/form.css');
             $styles->register('uikit-notify', '../../../app/assets/uikit/css/components/notify.min.css');
         },
 
         'view.system/site/admin/settings' => function (ViewEvent $event, View $view) use ($app) {
-            $view->script('site-recaptcha', 'form:app/bundle/site-recaptcha.js', 'site-settings');
+            $view->script('site-recaptcha', 'sab/form:app/bundle/site-recaptcha.js', 'site-settings');
             $view->data('$form', $this->config());
         }
 

@@ -1,6 +1,8 @@
-<div class="sab-inline">
-    <form v-validator="form" @submit="submit | valid" v-cloak>
-        <fieldset :disabled="status > 0"></fieldset>
+<div id="<?= $id ?>" class="sab-inline">
+    <form <?= $class ? "class=\"$class\"" : '' ?> v-validator="form" @submit="submit | valid" v-cloak>
+        <fieldset :disabled="status > 0">
+            <?= $content ?>
+        </fieldset>
         <invisible-recaptcha
             v-ref:recaptcha
             @verify="onCaptchaVerified"
