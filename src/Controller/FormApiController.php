@@ -32,7 +32,7 @@ class FormApiController
 
             list($mail, $adresses, $values) = array_values(json_decode($data, true));
 
-            if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->current());
+            if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->previous());
 
             foreach($adresses as $key => $value) {
                 $parts = explode(' ', trim($value)); // value can have multiple email seperated by whitespace
