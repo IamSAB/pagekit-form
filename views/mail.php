@@ -96,6 +96,12 @@
                                     <?= isset($mail['title']) ? $mail['title'] : $mail['subject'] ?>
                                 </h1>
 
+                                <?php if (isset($mail['desc'])): ?>
+                                    <p style="padding: 30px; font-size: 16px; line-height: 20px; font-family: Helvetica, Arial, sans-serif; color: #999;">
+                                        <?= $mail['desc'] ?>
+                                    </p>
+                                <?php endif ?>
+
                                 <table id="values-table" width="100%" style="border-collapse: collapse; margin: 20px 0; text-align: left;">
                                     <?php foreach ($values as $key => $value): ?>
                                         <tr <?= array_search($key, array_keys($values))%2 ? 'style="background-color: #f2f2f2;"': ''; ?>>
@@ -115,11 +121,11 @@
                                     <a style="color: #777; text-decoration: none;" href="<?= $app['url']->base(0) ?>">
                                         <?= $app['url']->base(0) ?>
                                     </a>
+                                    <br>
+                                    <span>
+                                        <?= (new DateTime())->format('Y-m-d H:i') ?>
+                                    </span>
                                 </p>
-
-                                <span>
-                                    <?= (new DateTime())->format('Y-m-d H:i') ?>
-                                </span>
 
                             </td>
                         </tr>

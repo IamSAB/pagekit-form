@@ -32,6 +32,8 @@ class FormApiController
 
             list($mail, $adresses, $values) = array_values(json_decode($data, true));
 
+            if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->current());
+
             foreach($adresses as $key => $value) {
                 $parts = explode(' ', trim($value)); // value can have multiple email seperated by whitespace
                 $adresses[$key] = [];
@@ -60,6 +62,7 @@ class FormApiController
             if (isset($adresses['cc'])) $msg->setCc($adresses['cc']);
             if (isset($adresses['bcc'])) $msg->setBcc($adresses['bcc']);
             if (isset($adresses['replyto'])) $msg->setReplyTo($adresses['replyto']);
+            if (isset($adresses['priority'])) $msg->setPriority( (int) $adresses['priority']);
 
             if ($params = App::request()->files->all()) {
                 foreach ($params as $key => $files) {
@@ -70,8 +73,7 @@ class FormApiController
                 }
             }
 
-            $msg->setBody(App::view('form/mail.php', compact('values', 'mail')), 'text/html');
-
+            $msg->setBody(App::view('form/mail.php', compact('values', 'mail', 'form')), 'text/html');
 
             $msg->send();
 

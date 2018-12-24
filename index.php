@@ -48,13 +48,16 @@ return [
             ]);
         },
 
-        'view.scripts' => function (Event $event, AssetManager $scripts) {
+        'view.scripts' => function (Event $event, AssetManager $scripts) use ($app) {
             $scripts->register('g-recaptcha', 'https://www.google.com/recaptcha/api.js');
-            $scripts->register('forms', 'form:app/bundle/forms.js', ['vue', 'g-recaptcha']);
+            $dps = ['uikit-notify', 'vue'];
+            if ($app['config']->get('form')->get('recaptcha.sitekey')) $dps[] = 'g-recaptcha';
+            $scripts->register('forms', 'form:app/bundle/forms.js', $dps);
         },
 
         'view.styles' => function (Event $event, AssetManager $styles) {
             $styles->register('form', 'form:css/form.css');
+            $styles->register('uikit-notify', '../../../app/assets/uikit/css/components/notify.min.css');
         },
 
         'view.system/site/admin/settings' => function (ViewEvent $event, View $view) use ($app) {

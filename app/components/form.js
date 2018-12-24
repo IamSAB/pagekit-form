@@ -13,11 +13,13 @@ export default {
     methods: {
 
         submit () {
-            if (this.$pagekit.recaptcha) this.$refs.recaptcha.execute();
+            if (window.$pagekit.recaptcha) this.$refs.recaptcha.execute();
             else this.save();
         },
 
         save () {
+
+            this.mail.i = this.i;
 
             this.formData.append('data', JSON.stringify({
                 mail: this.mail,
@@ -25,17 +27,14 @@ export default {
                 values: this.values
             }));
 
-            this.status = 1;
+            this.status = 1; // sending
 
-            this.$http.post('api/form', this.formData).then(function (res) {
-
-                this.$notify('Success.');
-
-                this.status = 2;
-
-            }, function (res) {
-                this.$notify(res.data, 'danger');
-                this.status = 3;
+            this.$http.post('api/form', this.formData).then((res) => {
+                this.$notify(this.$trans('Successfully send mail.'));
+                this.status = 2; // success
+            }, (res) => {
+                this.$notify('Unable to send mail.', 'danger');
+                this.status = 3; // error
             });
         },
 
@@ -57,11 +56,6 @@ export default {
 
         onCaptchaError (error) {
             this.$notify(error);
-        },
-
-        render(id)
-        {
-            console.log(id);
         }
     },
 

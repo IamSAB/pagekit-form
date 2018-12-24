@@ -21,9 +21,7 @@ class FormPlugin implements EventSubscriberInterface
     {
         $content = HtmlDomParser::str_get_html($event->getContent());
 
-        foreach ($content->find('form[to][subject]') as $index => $form) { // find forms with to attribute
-
-            $id = 'form'.($index+1);
+        foreach ($content->find('form[to]') as $i => $form) { // find forms with to attribute
 
             $attrs = $form->getAllAttributes();
 
@@ -31,7 +29,7 @@ class FormPlugin implements EventSubscriberInterface
             $mail = Arr::extract($attrs, ['title', 'subject', 'desc', 'priority']);
             $values = [];
 
-            foreach($form->find('input[name], select[name], textarea[name]') as $index => $input) {
+            foreach($form->find('input[name], select[name], textarea[name]') as $j => $input) {
 
                 if ($input->tag == 'select' && $input->multiple) { // TODO currently setting multiple times default
                     $values[$input->name] = [];
@@ -54,12 +52,15 @@ class FormPlugin implements EventSubscriberInterface
 
             App::view()->script('forms');
             App::view()->style('form');
+            App::view()->style('uikit-notify');
+
+            $id = 'sab-form-'.($i+1);
 
             App::view()->data('$forms', [
-                $id => compact('mail', 'values', 'adresses')
+                $id => compact('mail', 'values', 'adresses', 'i')
             ]);
 
-            // google recaptcha
+            // google reCAPTCHA
             if (App::config('form')->get('recaptcha.sitekey')) {
                 App::view()->script('g-recaptcha');
             }
@@ -90,7 +91,7 @@ class FormPlugin implements EventSubscriberInterface
     public function subscribe()
     {
         return [
-            'content.plugins' => ['onContentPlugins', 25],
+            'content.plugins' => 'onContentPlugins',
         ];
     }
 }
