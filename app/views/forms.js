@@ -1,11 +1,14 @@
 import Form from '../components/form';
 
 Vue.ready(function () {
-    _.each(window.$forms, (form, id) => {
+    const data = window.$sabform;
+    _.each(data.forms, (values, i) => {
         new Vue({
-            name: id,
-            form: form,
-            el: '#'+id,
+            name: data.prefix+i,
+            el: '#'+data.prefix+i,
+            index: i,
+            node: data.node,
+            values: values,
             extends: Form
         })
     });

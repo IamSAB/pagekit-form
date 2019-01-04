@@ -14,55 +14,32 @@ class FormApiController
 {
     /**
      * @Route(methods="POST")
-     * @Request({"data", "recaptcha"}, csrf=true)
+     * @Request({"data"}, csrf=true)
+     * @Captcha(verify="true")
      */
-    public function indexAction(string $data, string $reCaptchaToken = '')
+    public function indexAction(string $data)
     {
-        try {
+        // try {
 
-            // verify reCaptcha
-            if ($reCaptchaToken) {
-                $recaptcha = new ReCaptcha(App::config('form')->get('recaptcha.secret'));
-                $response = $recaptcha->verify($reCaptchaToken, App::request()->server->get('REMOTE_ADDR'));
-                if (!$response->isSuccess()) {
-                    $errors = $response->getErrorCodes();
-                    App::abort(403, (isset($errors[0]) ? $errors[0] : 'Error in reCaptcha'));
-                }
-            }
+            list($index, $node, $mail, $values) = array_values(json_decode($data, true));
 
-            list($mail, $adresses, $values) = array_values(json_decode($data, true));
+            $node = Node::find($node);
 
             if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->previous());
 
-            foreach($adresses as $key => $value) {
-                $parts = explode(' ', trim($value)); // value can have multiple email seperated by whitespace
-                $adresses[$key] = [];
-                foreach ($parts as $index => $part) {
-                    if (preg_match('/^\$([A-Za-z]+)/', $part, $matches)) {
-                        $part = (array) $values[$matches[1]]; // mostly string; can be array (multiselect/checkboxes with emails)
-                    }
-                    $adresses[$key] = Arr::merge($adresses[$key], (array) $part);
-                }
-            }
-
-            foreach ($adresses as $type => $arr) {
-                foreach ($arr as $i => $email) {
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        unset($adresses[$type][$i]);
-                        App::log()->warning(sprintf('%s is not a valid email!', $email));
-                    }
-                }
-            }
-
             $msg = App::mailer()->create();
             $msg
-                ->setTo($adresses['to'])
+                ->setTo($mail['to'])
                 ->setSubject($mail['subject']);
 
-            if (isset($adresses['cc'])) $msg->setCc($adresses['cc']);
-            if (isset($adresses['bcc'])) $msg->setBcc($adresses['bcc']);
-            if (isset($adresses['replyto'])) $msg->setReplyTo($adresses['replyto']);
-            if (isset($adresses['priority'])) $msg->setPriority( (int) $adresses['priority']);
+            foreach ($mail as $key => $value) {
+                $msg->{'set'.ucfirst($key)}($value);
+            }
+
+            if (isset($mail['cc'])) $msg->setCc($mail['cc']);
+            if (isset($mail['bcc'])) $msg->setBcc($mail['bcc']);
+            if (isset($mail['replyto'])) $msg->setReplyTo($mail['replyTo']);
+            if (isset($mail['priority'])) $msg->setPriority($mail['priority']);
 
             if ($params = App::request()->files->all()) {
                 foreach ($params as $key => $files) {
@@ -79,8 +56,8 @@ class FormApiController
 
             return compact('values', 'mail', 'adresses');
 
-        } catch (\Exception $e) {
-            throw new \Exception(__('Unable to send mail.'));
-        }
+        // } catch (\Exception $e) {
+        //     throw new \Exception(__('Unable to send mail.'));
+        // }
     }
 }

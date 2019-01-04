@@ -1,65 +1,50 @@
-import invisibleRecaptcha from './invisible-recaptcha.vue';
+import Send from './send.vue';
 
 export default {
 
     data () {
-        return  _.merge({
+        return  {
             status: 0,
             form: null,
             formData: new FormData,
-        }, this.$options.form);
+            values: this.$options.values
+        };
     },
 
     methods: {
-
-        submit () {
-            if (window.$pagekit.recaptcha) this.$refs.recaptcha.execute();
-            else this.save();
-        },
-
-        save () {
-
-            this.mail.i = this.i;
-
-            this.formData.append('data', JSON.stringify({
-                mail: this.mail,
-                adresses: this.adresses,
-                values: this.values
-            }));
-
-            this.status = 1; // sending
-
-            this.$http.post('api/form', this.formData).then((res) => {
-                this.$notify(this.$trans('Successfully send mail.'));
-                this.status = 2; // success
-            }, (res) => {
-                this.$notify('Unable to send mail.', 'danger');
-                this.status = 3; // error
-            });
-        },
 
         files(name) {
             _.each(this.$els[name].files, (file) => {
                 this.formData.append(name+'[]', file, file.name);
             });
-        },
-
-        onCaptchaVerified (recaptchaToken) {
-            this.$refs.recaptcha.reset();
-            this.formData.append('recaptcha', recaptchaToken);
-            this.save();
-        },
-
-        onCaptchaExpired () {
-            this.$refs.recaptcha.reset();
-        },
-
-        onCaptchaError (error) {
-            this.$notify(error);
         }
     },
 
+    events: {
+
+        send (mail) {
+
+            this.status = 1; // sending
+
+            this.formData.append('data', JSON.stringify({
+                index: this.$options.index,
+                node: this.$options.node,
+                mail: mail,
+                values: this.values
+            }));
+
+            this.$http.post('api/form', this.formData).then((res) => {
+                this.$notify(this.$trans('Successfully send mail.'));
+                this.status = 2; // success
+            }, (res) => {
+                this.$notify(this.$trans('Unable to send mail.'), 'danger');
+                this.status = 3; // error
+            });
+        }
+
+    },
+
     components: {
-        invisibleRecaptcha
+        Send
     }
 }

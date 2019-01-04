@@ -42,12 +42,6 @@ return [
 
     'events' => [
 
-        'view.init' => function (Event $event, View $view) use ($app) {
-            $view->data('$pagekit', [
-                'recaptcha' => $app['config']->get('form')->get('recaptcha.sitekey')
-            ]);
-        },
-
         'view.scripts' => function (Event $event, AssetManager $scripts) use ($app) {
             $scripts->register('g-recaptcha', 'https://www.google.com/recaptcha/api.js');
             $dps = ['uikit-notify', 'vue'];
@@ -58,11 +52,6 @@ return [
         'view.styles' => function (Event $event, AssetManager $styles) {
             $styles->register('form', 'sab/form:css/form.css');
             $styles->register('uikit-notify', '../../../app/assets/uikit/css/components/notify.min.css');
-        },
-
-        'view.system/site/admin/settings' => function (ViewEvent $event, View $view) use ($app) {
-            $view->script('site-recaptcha', 'sab/form:app/bundle/site-recaptcha.js', 'site-settings');
-            $view->data('$form', $this->config());
         }
 
     ]
