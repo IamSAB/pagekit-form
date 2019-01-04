@@ -90,7 +90,7 @@ Actually you can use the hole Vue JS instance inside the form tag. The greater y
 	subject="Contact"
     to="$contact"
     cc="$email"
-    replyTo="$email"
+    replyo="$email"
 	class="uk-form uk-form-horizontal">
 
     <div class="uk-form-row">
@@ -137,7 +137,7 @@ Actually you can use the hole Vue JS instance inside the form tag. The greater y
 <form
     subject="Appointment"
 	to="hr@c.com"
-    replyTo="$email"
+    replyto="$email"
     class="uk-form uk-form-horizontal">
 
     <div class="uk-form-row">
@@ -184,7 +184,7 @@ Actually you can use the hole Vue JS instance inside the form tag. The greater y
     subject="Springtime Festival"
 	to="festival@sp.ch"
     cc="$email"
-    replyTo="$email"
+    replyto="$email"
     class="uk-form uk-form-stacked">
 
     <div class="uk-form-row">
