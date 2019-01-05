@@ -25,7 +25,7 @@ class FormPlugin implements EventSubscriberInterface
 
             $attrs = $form->getAllAttributes();
 
-            $adresses = Arr::extract($attrs,['to','cc','bbc','replyto']);
+            $adresses = Arr::extract($attrs,['to','cc','bcc','replyto']);
             $mail = Arr::extract($attrs, ['title', 'subject', 'desc', 'priority']);
             $values = [];
 
