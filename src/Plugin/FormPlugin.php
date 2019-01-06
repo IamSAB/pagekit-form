@@ -13,12 +13,38 @@ class FormPlugin implements EventSubscriberInterface
 {
 
     const ID_PREFIX = 'sab-form';
+
     /**
      * Content plugins callback.
      *
      * @param ContentEvent $event
      */
-    public function onContentPlugins(ContentEvent $event)
+    public function beforeSimpleContentPlugin(ContentEvent $event)
+    {
+        $event->addPlugin('video', [$this, 'applyPlugin']);
+    }
+
+    /**
+     * Defines the plugins callback.
+     *
+     * @param  array $options
+     * @return string
+     */
+    public function applyPlugin(array $options)
+    {
+        if (!isset($options['name'])) {
+            return;
+        }
+
+        // FEATURE allow using predefined forms via plugin shortcut
+    }
+
+    /**
+     * Content plugins callback.
+     *
+     * @param ContentEvent $event
+     */
+    public function afterMarkdownPlugin(ContentEvent $event)
     {
         $dom = new Dom;
         $dom->load($event->getContent());
@@ -67,21 +93,28 @@ class FormPlugin implements EventSubscriberInterface
                     if ($input->tag == 'select' && $input->multiple) { // TODO currently setting multiple times default
                         $forms[$i][$input->name] = [];
                     }
-                    else if ($input->type == 'checkbox' && array_key_exists($input->name, $values)) {
+                    else if ($input->type == 'checkbox' && isset($forms[$i][$input->name])) {
                         $forms[$i][$input->name] = [];
                     }
-                    else {
+                    else if ($input->type != 'file') {
                         $forms[$i][$input->name] = '';
                     }
 
-                    // set validators
-                    foreach ($input->getAttributes() as $key => $value) {
-                        if (isset($validators[$key])) {
-                            $input->setAttribute('v-validate:'.$key, $value ? $value : $validators[$key]);
+                    // set validators via attributes
+                    foreach ($input->getAttributes() as $name => $value) {
+                        if (isset($validators[$name])) {
+                            $input->setAttribute('v-validate:'.$name, $value ? $value : $validators[$name]);
                         }
                     }
 
-                    // adapt inputs
+                    // set validators via type
+                    foreach (['email' => 'email', 'number' => 'integer', 'url' => 'url'] as $type => $validator) {
+                        if ($input->type == $type) {
+                            $input->setAttribute('v-validate:'.$validator, true);
+                        }
+                    }
+
+                    // input as model
                     if ($input->type != 'file') {
                         $input->tag->setAttributes([
                             'v-model' => 'values.'.$input->name,
@@ -101,6 +134,7 @@ class FormPlugin implements EventSubscriberInterface
 
         if (count($forms)) {
 
+            // add page to captcha routes
             App::request()->attributes->add(['_captcha_routes' => [App::request()->attributes->get('_route')]]);
 
             App::view()->data('$sabform', [
@@ -109,9 +143,8 @@ class FormPlugin implements EventSubscriberInterface
                 'forms' => $forms
             ]);
 
-            App::view()->script('forms');
-            App::view()->style('form');
-            App::view()->style('uikit-notify');
+            App::scripts('forms', 'sab/form:app/bundle/forms.js', ['vue', 'uikit-notify']);
+            App::styles('uikit-notify', 'app/assets/uikit/css/components/notify.min.css', ['uikit']);
 
             $event->setContent($dom);
         }
@@ -123,7 +156,10 @@ class FormPlugin implements EventSubscriberInterface
     public function subscribe()
     {
         return [
-            'content.plugins' => 'onContentPlugins',
+            'content.plugins' => [
+                ['beforeSimpleContentPlugin', 11],
+                ['afterMarkdownPlugin', 4]
+            ]
         ];
     }
 }

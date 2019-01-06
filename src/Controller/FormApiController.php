@@ -5,7 +5,7 @@ namespace SAB\Form\Controller;
 
 use Pagekit\Application as App;
 use Pagekit\Util\Arr;
-use ReCaptcha\ReCaptcha;
+use Pagekit\Site\Model\Node;
 
 /**
  * @Route("/form")
@@ -21,26 +21,36 @@ class FormApiController
     {
         // try {
 
-            list($index, $node, $mail, $values) = array_values(json_decode($data, true));
+            list($index, $node, $mail, $values) = array_values(json_decode($data, true)); // decode as array
 
             $node = Node::find($node);
 
-            if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->previous());
-
-            $msg = App::mailer()->create();
-            $msg
-                ->setTo($mail['to'])
-                ->setSubject($mail['subject']);
-
-            foreach ($mail as $key => $value) {
-                $msg->{'set'.ucfirst($key)}($value);
+            if (!isset($mail['subject'])) {
+                $mail['subject'] = sprintf('%s - #%u form at %s ', App::config('system/site')->get('title'), $index+1, $node->title);
             }
 
-            if (isset($mail['cc'])) $msg->setCc($mail['cc']);
-            if (isset($mail['bcc'])) $msg->setBcc($mail['bcc']);
-            if (isset($mail['replyto'])) $msg->setReplyTo($mail['replyTo']);
-            if (isset($mail['priority'])) $msg->setPriority($mail['priority']);
+            $msg = App::mailer()->create();
+            $msg->setSubject($mail['subject']);
 
+            // add adresses
+            foreach (['to', 'cc', 'bcc', 'replyTo'] as $key) {
+                if (Arr::has($mail, $key)) {
+                    if (is_array($mail[$key])) { // has multiple adresses
+                        foreach ($mail[$key] as $adress) {
+                            if (is_array($adress)) $msg->{'add'.ucfirst($key)}($adress[0], $adress[1]); // email with name: $value = ['email', 'name']
+                            else $msg->{'add'.ucfirst($key)}($adress); // adress without name
+                        }
+                    }
+                    else $msg->{'add'.ucfirst($key)}($mail[$key]); // single adress without name
+                }
+            }
+
+            // set priority [ 1 (highest) - 5 (lowest) ]
+            if (isset($mail['priority'])) {
+                $msg->setPriority( (int) $mail['priority']);
+            }
+
+            // attach files
             if ($params = App::request()->files->all()) {
                 foreach ($params as $key => $files) {
                     foreach ($files as $file) {
@@ -50,11 +60,19 @@ class FormApiController
                 }
             }
 
-            $msg->setBody(App::view('sab/form/mail.php', compact('values', 'mail', 'form')), 'text/html');
+            $mail['values'] = $values;
+            $mail['index'] = $index;
+            $mail['node'] = $node;
+
+            // set email body
+            $msgContent = App::view(
+                isset($mail['tmpl']) && App::locator()->get($mail['tmpl']) ? $mail['tmpl'] : 'sab/form/content.php', $mail
+            );
+            $msg->setBody(App::view('sab/form/layout.php', ['content' => $msgContent]), 'text/html');
 
             $msg->send();
 
-            return compact('values', 'mail', 'adresses');
+            return $mail;
 
         // } catch (\Exception $e) {
         //     throw new \Exception(__('Unable to send mail.'));
