@@ -19,7 +19,7 @@ class FormApiController
      */
     public function indexAction($index, $node, $mail, $values)
     {
-        // try {
+        try {
 
             $node = Node::find($node);
 
@@ -75,8 +75,8 @@ class FormApiController
 
             return $mail;
 
-        // } catch (\Exception $e) {
-        //     throw new \Exception(__('Unable to send mail.'));
-        // }
+        } catch (\Exception $e) {
+            throw new \Exception(__('Unable to send mail.'));
+        }
     }
 }
