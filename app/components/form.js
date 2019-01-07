@@ -6,17 +6,15 @@ export default {
         return  {
             status: 0,
             form: null,
-            formData: new FormData,
-            values: this.$options.values
+            values: this.$options.values,
+            files: {}
         };
     },
 
     methods: {
 
-        files(name) {
-            _.each(this.$els[name].files, (file) => {
-                this.formData.append(name+'[]', file, file.name);
-            });
+        addFiles(name) {
+            this.files[name] = this.$els[name].files;
         }
     },
 
@@ -26,14 +24,14 @@ export default {
 
             this.status = 1; // sending
 
-            this.formData.append('data', JSON.stringify({
+            let data = _.merge({
                 index: this.$options.index,
                 node: this.$options.node,
                 mail: mail,
                 values: this.values
-            }));
+            }, this.files);
 
-            this.$http.post('api/form', this.formData).then((res) => {
+            this.$http.post('api/form', data).then((res) => {
                 this.$notify(this.$trans('Successfully send mail.'));
                 this.status = 2; // success
             }, (res) => {

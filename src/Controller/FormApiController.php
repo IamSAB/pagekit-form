@@ -14,14 +14,12 @@ class FormApiController
 {
     /**
      * @Route(methods="POST")
-     * @Request({"data"}, csrf=true)
+     * @Request({"index": "int","node": "int","mail": "array", "values": "array"}, csrf=true)
      * @Captcha(verify="true")
      */
-    public function indexAction(string $data)
+    public function indexAction($index, $node, $mail, $values)
     {
         // try {
-
-            list($index, $node, $mail, $values) = array_values(json_decode($data, true)); // decode as array
 
             $node = Node::find($node);
 
@@ -71,6 +69,9 @@ class FormApiController
             $msg->setBody(App::view('sab/form/layout.php', ['content' => $msgContent]), 'text/html');
 
             $msg->send();
+
+            unset($mail['index']);
+            unset($mail['node']);
 
             return $mail;
 

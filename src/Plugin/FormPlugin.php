@@ -124,7 +124,7 @@ class FormPlugin implements EventSubscriberInterface
                     else {
                         $input->tag->setAttributes([
                             "v-el:$input->name" => '',
-                            '@change' => "files('$input->name')",
+                            '@change' => "addFiles('$input->name')",
                             ':disabled' => 'status > 0'
                         ]);
                     }
@@ -142,7 +142,6 @@ class FormPlugin implements EventSubscriberInterface
                 'node' => App::node()->id,
                 'forms' => $forms
             ]);
-
             App::scripts('forms', 'sab/form:app/bundle/forms.js', ['vue', 'uikit-notify']);
             App::styles('uikit-notify', 'app/assets/uikit/css/components/notify.min.css', ['uikit']);
 
