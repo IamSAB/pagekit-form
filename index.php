@@ -5,6 +5,7 @@ use Pagekit\View\Event\ViewEvent;
 use Pagekit\View\View;
 use Pagekit\View\Asset\AssetManager;
 use Pagekit\Event\Event;
+use Pagekit\Util\Arr;
 
 return [
 
@@ -33,37 +34,14 @@ return [
 
     ],
 
-    'config' => [
-        'recaptcha' => [
-            'sitekey' => '',
-            'secret' => ''
-        ]
-    ],
-
     'events' => [
 
-        'view.init' => function (Event $event, View $view) use ($app) {
-            $view->data('$pagekit', [
-                'recaptcha' => $app['config']->get('form')->get('recaptcha.sitekey')
-            ]);
-        },
-
-        'view.scripts' => function (Event $event, AssetManager $scripts) use ($app) {
-            $scripts->register('g-recaptcha', 'https://www.google.com/recaptcha/api.js');
-            $dps = ['uikit-notify', 'vue'];
-            if ($app['config']->get('form')->get('recaptcha.sitekey')) $dps[] = 'g-recaptcha';
-            $scripts->register('forms', 'sab/form:app/bundle/forms.js', $dps);
-        },
-
-        'view.styles' => function (Event $event, AssetManager $styles) {
-            $styles->register('form', 'sab/form:css/form.css');
-            $styles->register('uikit-notify', '../../../app/assets/uikit/css/components/notify.min.css');
-        },
-
-        'view.system/site/admin/settings' => function (ViewEvent $event, View $view) use ($app) {
-            $view->script('site-recaptcha', 'sab/form:app/bundle/site-recaptcha.js', 'site-settings');
-            $view->data('$form', $this->config());
-        }
+        // captcha bug fix (occurs in Pagekit v1.0.15)
+        'request' => [function ($event, $request) use ($app) {
+            if ($request->attributes->has('_captcha_verify') && 0 < count(Arr::filter($app->config('system/captcha')->toArray(), function ($val) { return !$val; }))) {
+                $request->attributes->set('_captcha_verify', false);
+            }
+        }, -90],
 
     ]
 

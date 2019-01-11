@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Pagekit 1.0.15 (sab/pagekit-form, messages)\n"
+"POT-Creation-Date: 2019-01-03 16:57+0000\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unable to send mail."
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Sended"
+msgstr ""
+
+msgid "Successfully send mail."
+msgstr ""
+
+msgid "Recaptcha"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+

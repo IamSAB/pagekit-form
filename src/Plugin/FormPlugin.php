@@ -6,89 +6,156 @@ namespace SAB\Form\Plugin;
 use Pagekit\Application as App;
 use Pagekit\Content\Event\ContentEvent;
 use Pagekit\Event\EventSubscriberInterface;
-use Sunra\PhpSimple\HtmlDomParser;
+use PHPHtmlParser\Dom;
 use Pagekit\Util\Arr;
 
 class FormPlugin implements EventSubscriberInterface
 {
 
+    const ID_PREFIX = 'sab-form';
+
+    // /**
+    //  * Content plugins callback.
+    //  *
+    //  * @param ContentEvent $event
+    //  */
+    // public function beforeSimpleContentPlugin(ContentEvent $event)
+    // {
+    //     $event->addPlugin('form', [$this, 'applyPlugin']);
+    // }
+
+    /**
+     * Defines the plugins callback.
+     *
+     * @param  array $options
+     * @return string
+     */
+    public function applyPlugin(array $options)
+    {
+        if (!isset($options['name'])) {
+            return;
+        }
+        // FEATURE allow using predefined forms via plugin shortcut
+    }
     /**
      * Content plugins callback.
      *
      * @param ContentEvent $event
      */
-    public function onContentPlugins(ContentEvent $event)
+    public function afterMarkdownPlugin(ContentEvent $event)
     {
-        $content = HtmlDomParser::str_get_html($event->getContent());
+        $dom = new Dom;
+        $dom->load($event->getContent());
 
-        foreach ($content->find('form[to]') as $i => $form) { // find forms with to attribute
+        $forms = [];
 
-            $attrs = $form->getAllAttributes();
+        $validators = [
+            'required' => true,
+            'numeric' => true,
+            'integer' => true,
+            'float' => true,
+            'alpha' => true,
+            'alphanum' => true,
+            'email' => true,
+            'url' => true,
+            'minlength' => 0,
+            'maxlength' => 200,
+            'length' => 50,
+            'min' => 0,
+            'max' => 1000,
+            'pattern' => '/(.*)/'
+        ];
 
-            $adresses = Arr::extract($attrs,['to','cc','bcc','replyto']);
-            $mail = Arr::extract($attrs, ['title', 'subject', 'desc', 'priority']);
-            $values = [];
+        foreach ($dom->find('form') as $i => $form) {
 
-            foreach($form->find('input[name], select[name], textarea[name]') as $j => $input) {
+            if ($send = $form->find('send', 0)) {
 
-                if ($input->tag == 'select' && $input->multiple) { // TODO currently setting multiple times default
-                    $values[$input->name] = [];
+                if (!$send->{':to'} && !$send->to) continue;
+
+                $send->tag->setAttributes(
+                    array_merge([
+                        ':status' => 'status',
+                    ], $send->getAttributes())
+                );
+
+                $form->tag->setAttributes([
+                    'id' => self::ID_PREFIX.$i,
+                    'v-validator' => 'form',
+                    '@submit.prevent' => '$broadcast(\'prepare\') | valid',
+                    'v-cloak' => true
+                ]);
+
+                foreach($form->find('input[name], select[name], textarea[name]') as $j => $input) {
+
+                    // get inputs and set default values
+                    if ($input->tag == 'select' && $input->multiple) { // TODO currently setting multiple times default
+                        $forms[$i][$input->name] = [];
+                    }
+                    else if ($input->type == 'checkbox' && isset($forms[$i][$input->name])) {
+                        $forms[$i][$input->name] = [];
+                    }
+                    else if ($input->type != 'file') {
+                        $forms[$i][$input->name] = '';
+                    }
+
+                    // set validators via attributes
+                    foreach ($input->getAttributes() as $name => $value) {
+                        if (isset($validators[$name])) {
+                            $input->setAttribute('v-validate:'.$name, $value ? $value : $validators[$name]);
+                        }
+                    }
+
+                    // set validators via type
+                    foreach (['email' => 'email', 'url' => 'url'] as $type => $validator) {
+                        if ($input->type == $type) {
+                            $input->setAttribute('v-validate:'.$validator, true);
+                        }
+                    }
+
+                    // input as model
+                    if ($input->type != 'file') {
+                        $input->tag->setAttributes([
+                            'v-model' => 'values.'.$input->name,
+                            ':disabled' => 'status > 0'
+                        ]);
+                    }
+                    else {
+                        $input->tag->setAttributes([
+                            "v-el:$input->name" => '',
+                            '@change' => "addFiles('$input->name')",
+                            ':disabled' => 'status > 0'
+                        ]);
+                    }
                 }
-                else if ($input->type == 'checkbox' && array_key_exists($input->name, $values)) {
-                    $values[$input->name] = [];
-                }
-                else {
-                    $values[$input->name] = null;
-                }
 
-                if ($input->type == 'file') {
-                    $input->setAttribute("v-el:$input->name", '');
-                    $input->setAttribute('@change', "files('$input->name')");
-                }
-                else {
-                    $input->setAttribute('v-model', 'values.'.$input->name);
-                }
+                // FEATURE add custom inputs (vue components)
+                // foreach ($form->find('*[input]') as $j => $component) {
+                //     $forms[$i][$component->input] = $component->array ? [] : '';
+                //     $component->tag->setAttributes([
+                //         "v-el:$component->name" => '',
+                //         '@input' => "values[$component->input] == \$event.target.value",
+                //         ':value' => "values[$component->input]",
+                //         ':disabled' => 'status > 0'
+                //     ]);
+                // }
             }
-
-            App::view()->script('forms');
-            App::view()->style('form');
-            App::view()->style('uikit-notify');
-
-            $id = 'sab-form-'.($i+1);
-
-            App::view()->data('$forms', [
-                $id => compact('mail', 'values', 'adresses', 'i')
-            ]);
-
-            // google reCAPTCHA
-            if (App::config('form')->get('recaptcha.sitekey')) {
-                App::view()->script('g-recaptcha');
-            }
-
-            // submission handling
-
-            if ($submit = $form->find('input[type=submit]',0)) {
-                $submit->setAttribute('v-show','status == 0');
-            }
-            else {
-                App::log()->warning(sprintf('No submit button found for %s', $id));
-            }
-
-            if ($success = $form->find('*[success]',0)) {
-                $success->setAttribute('v-show', 'status == 2');
-            }
-            if ($error = $form->find('*[error]',0)) {
-                $error->setAttribute('v-show', 'status == 3');
-            }
-
-            $form->outertext = App::view('sab/form/form.php', [
-                'id' => $id,
-                'class' => $form->getAttribute('class'),
-                'content' => $form->innertext,
-            ]);
         }
 
-        $event->setContent($content->save());
+        if (count($forms)) {
+
+            // add page to captcha routes
+            App::request()->attributes->add(['_captcha_routes' => [App::request()->attributes->get('_route')]]);
+
+            App::view()->data('$sabform', [
+                'prefix' => self::ID_PREFIX,
+                'node' => App::node()->id,
+                'forms' => $forms
+            ]);
+            App::scripts('forms', 'sab/form:app/bundle/forms.js', ['vue', 'uikit-notify']);
+            App::styles('uikit-notify', 'app/assets/uikit/css/components/notify.min.css', ['uikit']);
+
+            $event->setContent($dom);
+        }
     }
 
     /**
@@ -97,7 +164,10 @@ class FormPlugin implements EventSubscriberInterface
     public function subscribe()
     {
         return [
-            'content.plugins' => 'onContentPlugins',
+            'content.plugins' => [
+                // ['beforeSimpleContentPlugin', 11],
+                ['afterMarkdownPlugin', 4]
+            ]
         ];
     }
 }

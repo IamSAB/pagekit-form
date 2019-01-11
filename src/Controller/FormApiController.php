@@ -5,7 +5,7 @@ namespace SAB\Form\Controller;
 
 use Pagekit\Application as App;
 use Pagekit\Util\Arr;
-use ReCaptcha\ReCaptcha;
+use Pagekit\Site\Model\Node;
 
 /**
  * @Route("/form")
@@ -14,56 +14,41 @@ class FormApiController
 {
     /**
      * @Route(methods="POST")
-     * @Request({"data", "recaptcha"}, csrf=true)
+     * @Request({"index": "int","node": "int","mail": "array", "values": "array"}, csrf=true)
+     * @Captcha(verify="true")
      */
-    public function indexAction(string $data, string $reCaptchaToken = '')
+    public function indexAction($index, $node, $mail, $values)
     {
         try {
 
-            // verify reCaptcha
-            if ($reCaptchaToken) {
-                $recaptcha = new ReCaptcha(App::config('form')->get('recaptcha.secret'));
-                $response = $recaptcha->verify($reCaptchaToken, App::request()->server->get('REMOTE_ADDR'));
-                if (!$response->isSuccess()) {
-                    $errors = $response->getErrorCodes();
-                    App::abort(403, (isset($errors[0]) ? $errors[0] : 'Error in reCaptcha'));
-                }
-            }
+            $node = Node::find($node);
 
-            list($mail, $adresses, $values) = array_values(json_decode($data, true));
-
-            if (!isset($mail['subject'])) $mail['subject'] = sprintf('%s - form #%u at %s ', App::config('system/site')->get('title'), $mail['i']+1, App::url()->previous());
-
-            foreach($adresses as $key => $value) {
-                $parts = explode(' ', trim($value)); // value can have multiple email seperated by whitespace
-                $adresses[$key] = [];
-                foreach ($parts as $index => $part) {
-                    if (preg_match('/^\$([A-Za-z]+)/', $part, $matches)) {
-                        $part = (array) $values[$matches[1]]; // mostly string; can be array (multiselect/checkboxes with emails)
-                    }
-                    $adresses[$key] = Arr::merge($adresses[$key], (array) $part);
-                }
-            }
-
-            foreach ($adresses as $type => $arr) {
-                foreach ($arr as $i => $email) {
-                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        unset($adresses[$type][$i]);
-                        App::log()->warning(sprintf('%s is not a valid email!', $email));
-                    }
-                }
+            if (!isset($mail['subject'])) {
+                $mail['subject'] = sprintf('%s - #%u form at %s ', App::config('system/site')->get('title'), $index+1, $node->title);
             }
 
             $msg = App::mailer()->create();
-            $msg
-                ->setTo($adresses['to'])
-                ->setSubject($mail['subject']);
+            $msg->setSubject($mail['subject']);
 
-            if (isset($adresses['cc'])) $msg->setCc($adresses['cc']);
-            if (isset($adresses['bcc'])) $msg->setBcc($adresses['bcc']);
-            if (isset($adresses['replyto'])) $msg->setReplyTo($adresses['replyto']);
-            if (isset($adresses['priority'])) $msg->setPriority( (int) $adresses['priority']);
+            // add adresses
+            foreach (['to', 'cc', 'bcc', 'replyTo'] as $key) {
+                if (Arr::has($mail, $key)) {
+                    if (is_array($mail[$key])) { // has multiple adresses
+                        foreach ($mail[$key] as $adress) {
+                            if (is_array($adress)) $msg->{'add'.ucfirst($key)}($adress[0], $adress[1]); // email with name: $value = ['email', 'name']
+                            else $msg->{'add'.ucfirst($key)}($adress); // adress without name
+                        }
+                    }
+                    else $msg->{'add'.ucfirst($key)}($mail[$key]); // single adress without name
+                }
+            }
 
+            // set priority [ 1 (highest) - 5 (lowest) ]
+            if (isset($mail['priority'])) {
+                $msg->setPriority( (int) $mail['priority']);
+            }
+
+            // attach files
             if ($params = App::request()->files->all()) {
                 foreach ($params as $key => $files) {
                     foreach ($files as $file) {
@@ -73,11 +58,22 @@ class FormApiController
                 }
             }
 
-            $msg->setBody(App::view('sab/form/mail.php', compact('values', 'mail', 'form')), 'text/html');
+            $mail['values'] = $values;
+            $mail['index'] = $index;
+            $mail['node'] = $node;
+
+            // set email body
+            $msgContent = App::view(
+                isset($mail['tmpl']) && App::locator()->get($mail['tmpl']) ? $mail['tmpl'] : 'sab/form/content.php', $mail
+            );
+            $msg->setBody(App::view('sab/form/layout.php', ['content' => $msgContent]), 'text/html');
 
             $msg->send();
 
-            return compact('values', 'mail', 'adresses');
+            unset($mail['index']);
+            unset($mail['node']);
+
+            return $mail;
 
         } catch (\Exception $e) {
             throw new \Exception(__('Unable to send mail.'));
