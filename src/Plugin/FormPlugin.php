@@ -14,15 +14,15 @@ class FormPlugin implements EventSubscriberInterface
 
     const ID_PREFIX = 'sab-form';
 
-    /**
-     * Content plugins callback.
-     *
-     * @param ContentEvent $event
-     */
-    public function beforeSimpleContentPlugin(ContentEvent $event)
-    {
-        $event->addPlugin('video', [$this, 'applyPlugin']);
-    }
+    // /**
+    //  * Content plugins callback.
+    //  *
+    //  * @param ContentEvent $event
+    //  */
+    // public function beforeSimpleContentPlugin(ContentEvent $event)
+    // {
+    //     $event->addPlugin('form', [$this, 'applyPlugin']);
+    // }
 
     /**
      * Defines the plugins callback.
@@ -70,14 +70,14 @@ class FormPlugin implements EventSubscriberInterface
 
         foreach ($dom->find('form') as $i => $form) {
 
-            if ($submit = $form->find('send', 0)) {
+            if ($send = $form->find('send', 0)) {
 
-                if (!$submit->{':to'} && !$submit->to) continue;
+                if (!$send->{':to'} && !$send->to) continue;
 
-                $submit->tag->setAttributes(
+                $send->tag->setAttributes(
                     array_merge([
                         ':status' => 'status',
-                    ], $submit->getAttributes())
+                    ], $send->getAttributes())
                 );
 
                 $form->tag->setAttributes([
@@ -108,7 +108,7 @@ class FormPlugin implements EventSubscriberInterface
                     }
 
                     // set validators via type
-                    foreach (['email' => 'email', 'number' => 'integer', 'url' => 'url'] as $type => $validator) {
+                    foreach (['email' => 'email', 'url' => 'url'] as $type => $validator) {
                         if ($input->type == $type) {
                             $input->setAttribute('v-validate:'.$validator, true);
                         }
@@ -129,6 +129,17 @@ class FormPlugin implements EventSubscriberInterface
                         ]);
                     }
                 }
+
+                // FEATURE add custom inputs (vue components)
+                // foreach ($form->find('*[input]') as $j => $component) {
+                //     $forms[$i][$component->input] = $component->array ? [] : '';
+                //     $component->tag->setAttributes([
+                //         "v-el:$component->name" => '',
+                //         '@input' => "values[$component->input] == \$event.target.value",
+                //         ':value' => "values[$component->input]",
+                //         ':disabled' => 'status > 0'
+                //     ]);
+                // }
             }
         }
 
@@ -156,7 +167,7 @@ class FormPlugin implements EventSubscriberInterface
     {
         return [
             'content.plugins' => [
-                ['beforeSimpleContentPlugin', 11],
+                // ['beforeSimpleContentPlugin', 11],
                 ['afterMarkdownPlugin', 4]
             ]
         ];

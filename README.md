@@ -58,7 +58,7 @@ Every input is send via mail to the provided adresses as a table of name & value
 
 The send tag is rendered as button[type=submit]. To style it use the class attribute.
 
-If you want change the inner html of the button dependend on the status of the form, use whatever html tag you want a with slot attribute having value `sending, succes or error`. Elements without slot are rendered as default.
+If you want change the inner html of the button dependend on the status of the form, use whatever html tag you want a with slot attribute having value `sending, success or error`. Elements without slot are rendered as default.
 
 ## Validation
 
@@ -125,7 +125,7 @@ For Uikit v3 just adapt classes!
     <div class="uk-form-row">
         <label class="uk-form-label">Message</label>
         <div class="uk-form-controls">
-            <textarea class="uk-form-width-large" name="message" row="6" alpha maxlength="1000"></textarea>
+            <textarea class="uk-form-width-large" name="message" row="6" maxlength="1000"></textarea>
         </div>
     </div>
 
