@@ -35,10 +35,8 @@ class FormPlugin implements EventSubscriberInterface
         if (!isset($options['name'])) {
             return;
         }
-
         // FEATURE allow using predefined forms via plugin shortcut
     }
-
     /**
      * Content plugins callback.
      *
