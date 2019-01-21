@@ -75,7 +75,9 @@ class FormApiController
 
             return $mail;
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
+            App::log()->error($e->getMessage());
             throw new \Exception(__('Unable to send mail.'));
         }
     }

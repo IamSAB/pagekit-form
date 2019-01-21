@@ -1,7 +1,8 @@
 {
   "name": "sab-form",
   "scripts": {
-    "archive": "webpack -p && composer archive --format=zip"
+    "archive": "webpack -p && composer archive --format=zip",
+    "watch": "webpack --watch"
   },
   "devDependencies": {
     "babel-core": "^6.1.2",

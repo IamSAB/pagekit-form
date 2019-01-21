@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+## Removed
+- fix for captcha bug of pagekit
+
 ## 1.0.0
 
 ### Added
