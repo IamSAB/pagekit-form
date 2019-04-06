@@ -2,7 +2,7 @@
     "name": "sab/form",
     "module": "sab/form",
     "type": "pagekit-extension",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "title": "SAB Form",
     "description": "Create your custom html forms inside the native Pagekit Editor allowing submission via mail.",
     "license": "MIT",
