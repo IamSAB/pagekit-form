@@ -1,5 +1,11 @@
 #  SAB Form
 
+---
+
+REQUIRES `PHP >=7.1` and `ext-mbstring`
+
+---
+
 Create your custom html forms inside the native Pagekit Editor allowing submission via mail. **Simply code your form with your own html and css.**
 
 Everything within a classic `form` tag having the special `send` tag with a `to` attribute will be made interactive with a Vue component anchored to your form.
